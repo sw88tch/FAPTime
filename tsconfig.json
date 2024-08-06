@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "rootDir": "./",  
+    "outDir": "./dist"
+  },
+  "include": ["tests/**/*.ts", "pages/**/*.ts"],
+  "exclude": ["node_modules"]
+}
