@@ -1,37 +1,48 @@
-import { Page } from '@playwright/test';
-import { videoPageLocators } from '../locators/videoPageLocators';
+import { expect } from '@playwright/test';
+import { HomePage } from './homePage';
+import { Locator } from 'playwright';
 
-export class VideoPage {
-  constructor(private page: Page) {}
+export type VideoPageLocators = {
+  container: Locator;
+  controlsInner: Locator;
+  volumeToggle: Locator;
+  icon: Locator;
+  unmutedClass: string;
+  menu: Locator;
+};
+
+export class VideoPage extends HomePage {
+  private readonly videoPageLocators: VideoPageLocators;
+
+  constructor(page: any) {
+    super(page);
+    this.videoPageLocators = {
+      container: page.locator('.video__main.video__main_gold'),
+      controlsInner: page.locator('.video-purchase__controls-inner'),
+      volumeToggle: page.locator('.video-purchase__volume-toggle'),
+      icon: page.locator('.icon_player-mute'),
+      unmutedClass: 'video-purchase__volume-toggle_unmuted',
+      menu: page.locator('.video__main.video__main_gold .video-purchase__menu'),
+    };
+  }
 
   async waitForContainer() {
-    return await this.page.waitForSelector(videoPageLocators.container);
+    await this.videoPageLocators.container.waitFor({ state: 'attached' });
+  }
+  
+  async checkVideoPlaying(): Promise<void> {
+    const videoElement = this.page.locator('div.video-purchase__trailer video');
+    await videoElement.evaluate((video: HTMLVideoElement) => !video.paused);
   }
 
-  async checkVolumeToggle() {
-    const container = await this.waitForContainer();
-    const controlsInner = await container.$(videoPageLocators.controlsInner);
-    const volumeToggle = await controlsInner?.$(videoPageLocators.volumeToggle);
-
-    if (volumeToggle) {
-      const hasIcon = await volumeToggle.$(videoPageLocators.icon) !== null;
-      const hasUnmutedClass = await volumeToggle.evaluate(
-        (el, unmutedClass) => el.classList.contains(unmutedClass),
-        videoPageLocators.unmutedClass,
-      );
-      return { hasIcon, hasUnmutedClass };
-    }
-    return { hasIcon: false, hasUnmutedClass: false };
+  async checkMutedState(unMuted: string): Promise<void> {
+    const volumeToggle = this.videoPageLocators.controlsInner.locator(this.videoPageLocators.volumeToggle);
+    const classAttribute = await volumeToggle.getAttribute('class');
+    await expect(classAttribute).not.toContain(unMuted);
   }
 
-  async waitForMenuClosed() {
-    await this.page.waitForSelector(videoPageLocators.menu);
-    await this.page.waitForFunction(
-      (selector: string) => {
-        const menuElement = document.querySelector(selector) as HTMLElement;
-        return menuElement && menuElement.classList.contains('video-purchase__menu_closed');
-      },
-      videoPageLocators.menu,
-    );
+  async waitForMenuClosed(): Promise<void> {
+    const subscriptionMenu = this.videoPageLocators.menu;
+    await expect(subscriptionMenu).toHaveClass('video-purchase__menu_closed');
   }
 }

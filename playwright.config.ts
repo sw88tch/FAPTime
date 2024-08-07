@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 import path from 'path';
 
 export default defineConfig({
-  globalSetup: path.resolve(__dirname, './global-setup.ts'),
+  globalSetup: path.resolve(__dirname, './globalSetup.ts'),
   projects: [
     {
       name: 'chrome',

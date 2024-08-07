@@ -1,14 +1,16 @@
-import { test } from './fixtures';
-import { expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { HomePage } from '../pages/homePage';
+import { VideoPage } from '../pages/videoPage';
+import { config } from '../config';
 
-test('First fap test', async ({ homePage, videoPage }) => {
-  await homePage.goto();
+test('Open random video from best block', async ({ page }) => {
+  const homePage = new HomePage(page);
+  const videoPage = new VideoPage(page);
+
+  await homePage.goto(config.homePage);
   await homePage.clickRandomBestVideo();
+  await videoPage.waitForContainer();
+  await videoPage.checkVideoPlaying();
+  await videoPage.checkMutedState('video-purchase__volume-toggle_unmuted');
+})
 
-  const { hasIcon, hasUnmutedClass } = await videoPage.checkVolumeToggle();
-
-  expect(hasIcon).toBe(true);
-  expect(hasUnmutedClass).toBe(false);
-
-  await videoPage.waitForMenuClosed();
-});

@@ -1,27 +1,35 @@
 import { Page } from '@playwright/test';
-import { homePageLocators } from '../locators/homePageLocators';
+
+export type HomePageLocators = {
+  bestBlockItems: string;
+};
+
+const homePageLocators: HomePageLocators = {
+  bestBlockItems: '[data-el-block="best"] div.t-m',
+};
 
 export class HomePage {
-  private readonly page: Page;
-
+  protected readonly page: Page;
   private readonly homePageLocators = homePageLocators;
 
   constructor(page: Page) {
     this.page = page;
   }
 
-  async goto() {
-    await this.page.goto('https://faphouse.com/', { waitUntil: 'networkidle' });
+  async goto(homePage: string) {
+    await this.page.goto(homePage, { waitUntil: 'networkidle' });
   }
 
   async clickRandomBestVideo() {
-    await this.page.waitForSelector(this.homePageLocators.bestBlockItems);
-    const elements = await this.page.$$(this.homePageLocators.bestBlockItems);
+    const bestBlockItemsLocator = this.page.locator(this.homePageLocators.bestBlockItems);
+    const elementsCount = await bestBlockItemsLocator.count();
 
-    if (elements.length > 0) {
-      const randomIndex = Math.floor(Math.random() * elements.length);
-      await elements[randomIndex].click();
-      await this.page.waitForResponse(response => response.status() === 200);
+    if (elementsCount === 0) {
+      throw new Error("Missing video in the Best block.");
     }
+
+    const randomIndex = Math.floor(Math.random() * elementsCount);
+    await bestBlockItemsLocator.nth(randomIndex).click();
+    await this.page.waitForResponse(response => response.status() === 200);
   }
 }
