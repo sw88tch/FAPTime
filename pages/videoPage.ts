@@ -9,6 +9,7 @@ export type VideoPageLocators = {
   icon: Locator;
   unmutedClass: string;
   menu: Locator;
+  videoElement: Locator;
 };
 
 export class VideoPage extends HomePage {
@@ -23,26 +24,30 @@ export class VideoPage extends HomePage {
       icon: page.locator('.icon_player-mute'),
       unmutedClass: 'video-purchase__volume-toggle_unmuted',
       menu: page.locator('.video__main.video__main_gold .video-purchase__menu'),
+      videoElement: page.locator('div.video-purchase__trailer video')
     };
   }
 
   async waitForContainer() {
     await this.videoPageLocators.container.waitFor({ state: 'attached' });
   }
-  
+
   async checkVideoPlaying(): Promise<void> {
-    const videoElement = this.page.locator('div.video-purchase__trailer video');
+    const videoElement = this.videoPageLocators.videoElement;
     await videoElement.evaluate((video: HTMLVideoElement) => !video.paused);
   }
 
-  async checkMutedState(unMuted: string): Promise<void> {
-    const volumeToggle = this.videoPageLocators.controlsInner.locator(this.videoPageLocators.volumeToggle);
-    const classAttribute = await volumeToggle.getAttribute('class');
-    await expect(classAttribute).not.toContain(unMuted);
+  async checkMutedState(unMuted: boolean): Promise<void> {
+    const volumeToggle = this.videoPageLocators.volumeToggle;
+    const hasUnmutedClass = await volumeToggle.evaluate(
+      (element: HTMLElement, className: string) => element.classList.contains(className),
+      this.videoPageLocators.unmutedClass
+    );
+    await expect(hasUnmutedClass).toBe(!unMuted);
   }
-
+  
   async waitForMenuClosed(): Promise<void> {
-    const subscriptionMenu = this.videoPageLocators.menu;
-    await expect(subscriptionMenu).toHaveClass('video-purchase__menu_closed');
+    const menu = this.videoPageLocators.menu;
+    await expect(menu).toBeHidden();
   }
 }

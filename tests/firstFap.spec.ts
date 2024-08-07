@@ -11,6 +11,6 @@ test('Open random video from best block', async ({ page }) => {
   await homePage.clickRandomBestVideo();
   await videoPage.waitForContainer();
   await videoPage.checkVideoPlaying();
-  await videoPage.checkMutedState('video-purchase__volume-toggle_unmuted');
+  await videoPage.checkMutedState(true);
 })
 
